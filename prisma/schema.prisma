@@ -1,0 +1,120 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Driver {
+  id                  Int        @id @default(autoincrement())
+  firstName           String
+  lastName            String
+  program             String?
+  licenseNumber       String     @unique
+  licenseState        String?
+  licenseExpiration   DateTime?
+  driverStatus        String?
+  suspensionStartDate DateTime?
+  suspensionEndDate   DateTime?
+  licenseStatus       String?
+  vehicles            Vehicle[]
+  accidents           Accident[]
+  tickets             Ticket[]
+  documents           Document[]
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+}
+
+model Vehicle {
+  id                 Int        @id @default(autoincrement())
+  programVehicle     String?
+  year               String?
+  make               String?
+  model              String?
+  vinNumber          String?    @unique
+  licensePlateNumber String?
+  gpsTracker         String?
+  imeiNumber         String?
+  serialNumber       String?
+  driverId           Int?
+  driver             Driver?    @relation(fields: [driverId], references: [id])
+  accidents          Accident[]
+  tickets            Ticket[]
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+model Accident {
+  id                       Int       @id @default(autoincrement())
+  driverLicenseNumber      String?
+  driverFirstName          String?
+  driverLastName           String?
+  programPartnerName       String?
+  accidentDate             DateTime?
+  vinNumber                String?
+  year                     String?
+  make                     String?
+  model                    String?
+  licensePlate             String?
+  dcNumber                 String?
+  policeReportDate         DateTime?
+  policeReportTime         String?
+  dateReportedToInsurance  DateTime?
+  staffMemberReporting     String?
+  claimNumber              String?
+  adjusterAssigned         String?
+  documentation            String?
+  driverId                 Int?
+  driver                   Driver?   @relation(fields: [driverId], references: [id])
+  vehicleId                Int?
+  vehicle                  Vehicle?  @relation(fields: [vehicleId], references: [id])
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+}
+
+model Ticket {
+  id                  Int       @id @default(autoincrement())
+  driverLicenseNumber String?
+  driverFirstName     String?
+  driverLastName      String?
+  programPartnerName  String?
+  vinNumber           String?
+  violationDate       DateTime?
+  citationNumber      String?
+  citationDate        DateTime?
+  citationType        String?
+  citationAmount      String?
+  driverId            Int?
+  driver              Driver?   @relation(fields: [driverId], references: [id])
+  vehicleId           Int?
+  vehicle             Vehicle?  @relation(fields: [vehicleId], references: [id])
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model ServiceRequest {
+  id               Int       @id @default(autoincrement())
+  ticketId         String    @unique
+  dateOfReport     DateTime?
+  issueWith        String?
+  requestType      String?
+  other            String?
+  incidentLocation String?
+  details          String?
+  attachments      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Document {
+  id        Int      @id @default(autoincrement())
+  driverId  Int
+  driver    Driver   @relation(fields: [driverId], references: [id])
+  fileName  String
+  fileUrl   String
+  createdAt DateTime @default(now())
+}
