@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { SignJWT, jwtVerify } from 'jose'
 
-const PUBLIC_PATHS = ['/login', '/api/auth/login', '/api/auth/signup']
+const PUBLIC_PATHS = ['/login', '/api/auth/login', '/api/auth/signup', '/api/helpdesk/escalate', '/api/helpdesk/acknowledge']
 const COOKIE = 'david_session'
 const SECRET_KEY = () => new TextEncoder().encode(process.env.JWT_SECRET)
 
