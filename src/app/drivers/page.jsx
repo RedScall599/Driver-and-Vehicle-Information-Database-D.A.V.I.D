@@ -35,6 +35,14 @@ export default function DriversPage() {
     return map[status] || 'bg-gray-100 text-gray-700'
   }
 
+  function rowBg(d) {
+    const isSuspended = d.licenseStatus === 'Suspended'
+    const isExpired   = d.licenseStatus === 'Expired'
+    if (isSuspended) return 'bg-red-50 hover:bg-red-100'
+    if (isExpired)   return 'bg-yellow-50 hover:bg-yellow-100'
+    return 'hover:bg-gray-50'
+  }
+
   return (
     <AppShell>
       <div className="max-w-5xl mx-auto">
@@ -47,11 +55,11 @@ export default function DriversPage() {
             </p>
           </div>
           <Link
-            href="/drivers/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-700 text-white text-sm font-medium rounded-lg hover:bg-red-800 transition-colors"
-          >
-            + New Driver
-          </Link>
+              href="/drivers/new"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-red-700 text-white text-sm font-medium rounded-lg hover:bg-red-800 transition-colors"
+            >
+              + New Driver
+            </Link>
         </div>
 
         {/* Search */}
@@ -105,7 +113,7 @@ export default function DriversPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {drivers.map((d) => (
-                  <tr key={d.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={d.id} className={`${rowBg(d)} transition-colors`}>
                     <td className="px-5 py-3 font-medium text-gray-900">
                       {d.lastName}, {d.firstName}
                     </td>
@@ -121,11 +129,11 @@ export default function DriversPage() {
                     </td>
                     <td className="px-5 py-3 text-right">
                       <Link
-                        href={`/drivers/${d.id}`}
-                        className="text-red-700 hover:underline font-medium text-xs"
-                      >
-                        View / Edit →
-                      </Link>
+                          href={`/drivers/${d.id}`}
+                          className="text-red-700 hover:underline font-medium text-xs"
+                        >
+                          View / Edit →
+                        </Link>
                     </td>
                   </tr>
                 ))}

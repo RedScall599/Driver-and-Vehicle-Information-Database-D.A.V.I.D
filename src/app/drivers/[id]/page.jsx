@@ -1,15 +1,43 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import AppShell from '@/components/AppShell'
+import FileAttachments from '@/components/FileAttachments'
 
 const EMPTY = {
   firstName: '', lastName: '', program: '',
   licenseNumber: '', licenseState: '', licenseExpiration: '',
-  driverStatus: '', suspensionStartDate: '', suspensionEndDate: '',
+  suspensionStartDate: '', suspensionEndDate: '',
   licenseStatus: '',
+}
+
+function Field({ label, name, type = 'text', className = '', required = false, form, errors, onChange, inputFilter }) {
+  function handleChange(e) {
+    if (inputFilter === 'alpha') e.target.value = e.target.value.replace(/[^a-zA-Z\s\-']/g, '')
+    else if (inputFilter === 'numeric') e.target.value = e.target.value.replace(/[^0-9]/g, '')
+    else if (inputFilter === 'decimal') e.target.value = e.target.value.replace(/[^0-9.]/g, '')
+    onChange(e)
+  }
+  return (
+    <div className={className}>
+      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
+      <input
+        type={type}
+        name={name}
+        value={form[name] || ''}
+        inputMode={inputFilter === 'numeric' || inputFilter === 'decimal' ? 'numeric' : undefined}
+        onChange={handleChange}
+        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors ${
+          errors[name] ? 'border-red-400 bg-red-50' : 'border-gray-300'
+        }`}
+      />
+      {errors[name] && <p className="text-xs text-red-600 mt-1">{errors[name]}</p>}
+    </div>
+  )
 }
 
 export default function DriverDetailPage() {
@@ -24,6 +52,7 @@ export default function DriverDetailPage() {
   const [apiError, setApiError] = useState('')
   const [saved, setSaved] = useState(false)
   const [allIds, setAllIds] = useState([])
+  const attachRef = useRef()
 
   useEffect(() => {
     fetch('/api/drivers').then(r => r.json()).then(data => {
@@ -52,7 +81,11 @@ export default function DriverDetailPage() {
     const errs = {}
     if (!form.firstName?.trim()) errs.firstName = 'First name is required'
     if (!form.lastName?.trim()) errs.lastName = 'Last name is required'
+    if (!form.program?.trim()) errs.program = 'Program is required'
     if (!form.licenseNumber?.trim()) errs.licenseNumber = 'License number is required'
+    if (!form.licenseState?.trim()) errs.licenseState = 'State is required'
+    if (!form.licenseExpiration) errs.licenseExpiration = 'Expiration date is required'
+    if (!form.licenseStatus) errs.licenseStatus = 'License status is required'
     return errs
   }
 
@@ -80,7 +113,10 @@ export default function DriverDetailPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Save failed')
       setSaved(true)
-      if (isNew) router.push(`/drivers/${data.id}`)
+      if (isNew) {
+        await attachRef.current?.flush(data.id)
+        router.push(`/drivers/${data.id}`)
+      }
     } catch (err) {
       setApiError(err.message || 'Could not save. Please check required fields.')
     } finally {
@@ -113,23 +149,7 @@ export default function DriverDetailPage() {
     )
   }
 
-  const Field = ({ label, name, type = 'text', className = '', required = false }) => (
-    <div className={className}>
-      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
-      <input
-        type={type}
-        name={name}
-        value={form[name] || ''}
-        onChange={change}
-        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors ${
-          errors[name] ? 'border-red-400 bg-red-50' : 'border-gray-300'
-        }`}
-      />
-      {errors[name] && <p className="text-xs text-red-600 mt-1">{errors[name]}</p>}
-    </div>
-  )
+  const fp = { form, errors, onChange: change }
 
   return (
     <AppShell>
@@ -161,12 +181,14 @@ export default function DriverDetailPage() {
               >
                 Next →
               </button>
-              <Link
-                href="/drivers/new"
-                className="px-3 py-1.5 text-xs font-medium bg-red-700 text-white rounded-lg hover:bg-red-800"
-              >
-                + New
-              </Link>
+              {!isNew && (
+                <Link
+                  href="/drivers/new"
+                  className="px-3 py-1.5 text-xs font-medium bg-red-700 text-white rounded-lg hover:bg-red-800"
+                >
+                  + New
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -194,9 +216,9 @@ export default function DriverDetailPage() {
               Personal Information
             </h2>
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Last Name" name="lastName" required />
-              <Field label="First Name" name="firstName" required />
-              <Field label="Program" name="program" className="col-span-2" />
+              <Field {...fp} label="Last Name" name="lastName" required inputFilter="alpha" />
+              <Field {...fp} label="First Name" name="firstName" required inputFilter="alpha" />
+              <Field {...fp} label="Program" name="program" required className="col-span-2" />
             </div>
           </section>
 
@@ -206,11 +228,23 @@ export default function DriverDetailPage() {
               License Information
             </h2>
             <div className="grid grid-cols-3 gap-4">
-              <Field label="License #" name="licenseNumber" required className="col-span-2" />
-              <Field label="State" name="licenseState" />
-              <Field label="Expiration Date" name="licenseExpiration" type="date" />
-              <Field label="License Status" name="licenseStatus" />
-              <Field label="Driver Status" name="driverStatus" />
+              <Field {...fp} label="License #" name="licenseNumber" required className="col-span-2" />
+              <Field {...fp} label="State" name="licenseState" required inputFilter="alpha" />
+              <Field {...fp} label="Expiration Date" name="licenseExpiration" type="date" required />
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                  License Status<span className="text-red-500 ml-0.5">*</span>
+                </label>
+                <select name="licenseStatus" value={form.licenseStatus || ''} onChange={change}
+                  className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent bg-white ${errors.licenseStatus ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}>
+                  <option value="">— Select —</option>
+                  <option value="Valid">Valid</option>
+                  <option value="Suspended">Suspended</option>
+                  <option value="Expired">Expired</option>
+                </select>
+                {errors.licenseStatus && <p className="text-xs text-red-600 mt-1">{errors.licenseStatus}</p>}
+              </div>
+
             </div>
           </section>
 
@@ -220,38 +254,40 @@ export default function DriverDetailPage() {
               Suspension Information
             </h2>
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Suspension Start Date" name="suspensionStartDate" type="date" />
-              <Field label="Suspension End Date" name="suspensionEndDate" type="date" />
+              <Field {...fp} label="Suspension Start Date" name="suspensionStartDate" type="date" />
+              <Field {...fp} label="Suspension End Date" name="suspensionEndDate" type="date" />
             </div>
           </section>
 
+          <FileAttachments ref={attachRef} recordType="driver" recordId={isNew ? null : Number(params.id)} />
+
           {/* Actions */}
           <div className="flex items-center justify-between">
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={saving}
-                className="px-5 py-2 bg-red-700 text-white text-sm font-semibold rounded-lg hover:bg-red-800 disabled:opacity-60 transition-colors"
-              >
-                {saving ? 'Saving…' : isNew ? 'Create Driver' : 'Save Changes'}
-              </button>
-              <Link
-                href="/vehicles/new"
-                className="px-5 py-2 border border-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                + Add Vehicle
-              </Link>
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="px-5 py-2 bg-red-700 text-white text-sm font-semibold rounded-lg hover:bg-red-800 disabled:opacity-60 transition-colors"
+                >
+                  {saving ? 'Saving…' : isNew ? 'Create Driver' : 'Save Changes'}
+                </button>
+                <Link
+                  href="/vehicles/new"
+                  className="px-5 py-2 border border-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  + Add Vehicle
+                </Link>
+              </div>
+              {!isNew && (
+                <button
+                  type="button"
+                  onClick={remove}
+                  className="px-4 py-2 text-sm text-red-600 hover:text-red-800 font-medium"
+                >
+                  Delete Record
+                </button>
+              )}
             </div>
-            {!isNew && (
-              <button
-                type="button"
-                onClick={remove}
-                className="px-4 py-2 text-sm text-red-600 hover:text-red-800 font-medium"
-              >
-                Delete Record
-              </button>
-            )}
-          </div>
         </form>
       </div>
     </AppShell>

@@ -1,13 +1,18 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { getSession } from '@/lib/auth'
 
 export async function GET(request, { params }) {
   try {
+    const session = await getSession()
     const { id } = await params
     const accident = await prisma.accident.findUnique({
       where: { id: Number(id) },
     })
     if (!accident) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (session?.role !== 'admin' && accident.createdBy !== session?.userId) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
     return NextResponse.json(accident)
   } catch (err) {
     console.error('[GET /api/accidents/:id]', err)
@@ -17,11 +22,18 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
+    const session = await getSession()
     const { id } = await params
     const body = await request.json()
+    const existing = await prisma.accident.findUnique({ where: { id: Number(id) } })
+    if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (session?.role !== 'admin' && existing.createdBy !== session?.userId) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+    const { createdBy: _ignored, ...safeBody } = body
     const accident = await prisma.accident.update({
       where: { id: Number(id) },
-      data: body,
+      data: safeBody,
     })
     return NextResponse.json(accident)
   } catch (err) {
@@ -32,7 +44,13 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
+    const session = await getSession()
     const { id } = await params
+    const existing = await prisma.accident.findUnique({ where: { id: Number(id) } })
+    if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (session?.role !== 'admin' && existing.createdBy !== session?.userId) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
     await prisma.accident.delete({ where: { id: Number(id) } })
     return NextResponse.json({ success: true })
   } catch (err) {

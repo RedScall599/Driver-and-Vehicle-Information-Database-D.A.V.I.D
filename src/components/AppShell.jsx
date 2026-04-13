@@ -1,7 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useUser } from '@/components/AuthProvider'
+import InactivityWatcher from '@/components/InactivityWatcher'
 
 const nav = [
   { href: '/', label: 'Dashboard', icon: '⊞' },
@@ -13,6 +16,16 @@ const nav = [
 
 export default function AppShell({ children }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const user = useUser()
+  const [signingOut, setSigningOut] = useState(false)
+
+  async function signOut() {
+    setSigningOut(true)
+    await fetch('/api/auth/logout', { method: 'POST' })
+    router.push('/login')
+    router.refresh()
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -51,10 +64,37 @@ export default function AppShell({ children }) {
               </Link>
             )
           })}
+
+          {/* Help Desk link */}
+          <Link
+            href="/help-desk"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              pathname.startsWith('/help-desk')
+                ? 'bg-red-700 text-white'
+                : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+            }`}
+          >
+            <span className="text-base leading-none">🎧</span>
+            Help Desk
+          </Link>
         </nav>
 
-        <div className="px-6 py-4 border-t border-gray-700">
-          <p className="text-xs text-gray-500">© 2026 Urban Affairs Coalition</p>
+        <div className="px-4 py-4 border-t border-gray-700">
+          {user && (
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-white truncate">{user.name}</p>
+              <p className="text-xs text-gray-400 truncate">{user.email}</p>
+            </div>
+          )}
+          <button
+            onClick={signOut}
+            disabled={signingOut}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors disabled:opacity-50"
+          >
+            <span className="text-base leading-none">→</span>
+            {signingOut ? 'Signing out…' : 'Sign Out'}
+          </button>
+          <p className="text-xs text-gray-600 mt-3">© 2026 Urban Affairs Coalition</p>
         </div>
       </aside>
 
@@ -70,16 +110,22 @@ export default function AppShell({ children }) {
               Driver and Vehicle Information Database
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
               Connected
             </span>
+            {user && (
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-700 text-white text-xs font-bold select-none" title={user.name}>
+                {user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+              </div>
+            )}
           </div>
         </header>
 
         {/* Page content */}
         <main className="flex-1 p-8">{children}</main>
       </div>
+      <InactivityWatcher />
     </div>
   )
 }

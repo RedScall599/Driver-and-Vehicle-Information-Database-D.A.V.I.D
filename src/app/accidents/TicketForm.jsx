@@ -1,12 +1,36 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import FileAttachments from '@/components/FileAttachments'
 
 const EMPTY = {
   driverLicenseNumber: '', driverFirstName: '', driverLastName: '',
   programPartnerName: '', vinNumber: '',
   violationDate: '', citationNumber: '', citationDate: '',
   citationType: '', citationAmount: '',
+}
+
+function Field({ label, name, type = 'text', className = '', required = false, form, fieldErrors, onChange, inputFilter }) {
+  function handleChange(e) {
+    if (inputFilter === 'alpha') e.target.value = e.target.value.replace(/[^a-zA-Z\s\-']/g, '')
+    else if (inputFilter === 'numeric') e.target.value = e.target.value.replace(/[^0-9]/g, '')
+    else if (inputFilter === 'decimal') e.target.value = e.target.value.replace(/[^0-9.]/g, '')
+    onChange(e)
+  }
+  return (
+    <div className={className}>
+      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
+      <input type={type} name={name} value={form[name] || ''}
+        inputMode={inputFilter === 'numeric' || inputFilter === 'decimal' ? 'numeric' : undefined}
+        onChange={handleChange}
+        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors ${
+          fieldErrors[name] ? 'border-red-400 bg-red-50' : 'border-gray-300'
+        }`} />
+      {fieldErrors[name] && <p className="text-xs text-red-600 mt-1">{fieldErrors[name]}</p>}
+    </div>
+  )
 }
 
 export default function TicketForm({ recordId, onBack }) {
@@ -88,18 +112,7 @@ export default function TicketForm({ recordId, onBack }) {
     }
   }
 
-  const Field = ({ label, name, type = 'text', className = '', required = false }) => (
-    <div className={className}>
-      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
-      <input type={type} name={name} value={form[name] || ''} onChange={change}
-        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors ${
-          fieldErrors[name] ? 'border-red-400 bg-red-50' : 'border-gray-300'
-        }`} />
-      {fieldErrors[name] && <p className="text-xs text-red-600 mt-1">{fieldErrors[name]}</p>}
-    </div>
-  )
+  const fp = { form, fieldErrors, onChange: change }
 
   if (loading) return <div className="py-16 text-center text-gray-400 text-sm">Loading&hellip;</div>
 
@@ -140,18 +153,18 @@ export default function TicketForm({ recordId, onBack }) {
         <section className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-4">Driver Information</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <Field label="Driver First Name" name="driverFirstName" />
-            <Field label="Driver Last Name" name="driverLastName" required />
+            <Field {...fp} label="Driver First Name" name="driverFirstName" inputFilter="alpha" />
+            <Field {...fp} label="Driver Last Name" name="driverLastName" required inputFilter="alpha" />
           </div>
-          <Field label="Driver License Number" name="driverLicenseNumber" />
+          <Field {...fp} label="Driver License Number" name="driverLicenseNumber" />
         </section>
 
         {/* Program & Vehicle */}
         <section className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-4">Program &amp; Vehicle Information</h3>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Program Partner Name" name="programPartnerName" className="col-span-2" />
-            <Field label="VIN #" name="vinNumber" className="col-span-2" />
+            <Field {...fp} label="Program Partner Name" name="programPartnerName" className="col-span-2" />
+            <Field {...fp} label="VIN #" name="vinNumber" className="col-span-2" />
           </div>
         </section>
 
@@ -159,13 +172,15 @@ export default function TicketForm({ recordId, onBack }) {
         <section className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-4">Violation Information</h3>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Violation Date" name="violationDate" type="date" />
-            <Field label="Citation #" name="citationNumber" required />
-            <Field label="Citation Date" name="citationDate" type="date" />
-            <Field label="Citation Type" name="citationType" />
-            <Field label="Citation Amount" name="citationAmount" />
+            <Field {...fp} label="Violation Date" name="violationDate" type="date" />
+            <Field {...fp} label="Citation #" name="citationNumber" required />
+            <Field {...fp} label="Citation Date" name="citationDate" type="date" />
+            <Field {...fp} label="Citation Type" name="citationType" />
+            <Field {...fp} label="Citation Amount" name="citationAmount" inputFilter="decimal" />
           </div>
         </section>
+
+        <FileAttachments recordType="ticket" recordId={recordId} />
 
         <button type="submit" disabled={saving}
           className="px-5 py-2 bg-red-700 text-white text-sm font-semibold rounded-lg hover:bg-red-800 disabled:opacity-60 transition-colors">

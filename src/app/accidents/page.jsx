@@ -84,10 +84,10 @@ function AccidentListView({ onSelect, onNew }) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-semibold text-gray-800">Accident Records</h2>
-        <button onClick={onNew}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-red-700 text-white text-sm font-medium rounded-lg hover:bg-red-800 transition-colors">
-          + New Accident
-        </button>
+          <button onClick={onNew}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-700 text-white text-sm font-medium rounded-lg hover:bg-red-800 transition-colors">
+            + New Accident
+          </button>
       </div>
 
       <form onSubmit={handleSearch} className="flex gap-2 mb-4">
@@ -111,8 +111,7 @@ function AccidentListView({ onSelect, onNew }) {
           <div className="py-16 text-center text-gray-400 text-sm">Loading…</div>
         ) : records.length === 0 ? (
           <div className="py-16 text-center text-gray-400 text-sm">
-            No accident records found.{' '}
-            <button onClick={onNew} className="text-red-700 hover:underline">Add the first one.</button>
+            No accident records found.{' '}<button onClick={onNew} className="text-red-700 hover:underline">Add the first one.</button>
           </div>
         ) : (
           <table className="w-full text-sm">
@@ -137,11 +136,11 @@ function AccidentListView({ onSelect, onNew }) {
                   <td className="px-5 py-3 text-gray-600 font-mono">{r.vinNumber || '—'}</td>
                   <td className="px-5 py-3 text-gray-600">{r.claimNumber || '—'}</td>
                   <td className="px-5 py-3 text-right">
-                    <button onClick={() => onSelect(r.id)}
-                      className="text-red-700 hover:underline font-medium text-xs">
-                      View / Edit →
-                    </button>
-                  </td>
+                      <button onClick={() => onSelect(r.id)}
+                        className="text-red-700 hover:underline font-medium text-xs">
+                        View / Edit →
+                      </button>
+                    </td>
                 </tr>
               ))}
             </tbody>
@@ -175,9 +174,9 @@ function TicketListView({ onSelect, onNew }) {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-semibold text-gray-800">Traffic Violations</h2>
         <button onClick={onNew}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-red-700 text-white text-sm font-medium rounded-lg hover:bg-red-800 transition-colors">
-          + New Violation
-        </button>
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-700 text-white text-sm font-medium rounded-lg hover:bg-red-800 transition-colors">
+            + New Violation
+          </button>
       </div>
 
       <form onSubmit={handleSearch} className="flex gap-2 mb-4">
@@ -201,8 +200,7 @@ function TicketListView({ onSelect, onNew }) {
           <div className="py-16 text-center text-gray-400 text-sm">Loading…</div>
         ) : records.length === 0 ? (
           <div className="py-16 text-center text-gray-400 text-sm">
-            No violation records found.{' '}
-            <button onClick={onNew} className="text-red-700 hover:underline">Add the first one.</button>
+            No violation records found.{' '}<button onClick={onNew} className="text-red-700 hover:underline">Add the first one.</button>
           </div>
         ) : (
           <table className="w-full text-sm">
@@ -229,11 +227,11 @@ function TicketListView({ onSelect, onNew }) {
                   <td className="px-5 py-3 text-gray-600">{r.citationType || '—'}</td>
                   <td className="px-5 py-3 text-gray-600">{r.citationAmount || '—'}</td>
                   <td className="px-5 py-3 text-right">
-                    <button onClick={() => onSelect(r.id)}
-                      className="text-red-700 hover:underline font-medium text-xs">
-                      View / Edit →
-                    </button>
-                  </td>
+                      <button onClick={() => onSelect(r.id)}
+                        className="text-red-700 hover:underline font-medium text-xs">
+                        View / Edit →
+                      </button>
+                    </td>
                 </tr>
               ))}
             </tbody>

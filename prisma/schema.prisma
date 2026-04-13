@@ -9,6 +9,16 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("user")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model Driver {
   id                  Int        @id @default(autoincrement())
   firstName           String
@@ -21,6 +31,7 @@ model Driver {
   suspensionStartDate DateTime?
   suspensionEndDate   DateTime?
   licenseStatus       String?
+  createdBy           Int?
   vehicles            Vehicle[]
   accidents           Accident[]
   tickets             Ticket[]
@@ -40,10 +51,13 @@ model Vehicle {
   gpsTracker         String?
   imeiNumber         String?
   serialNumber       String?
+  existingDamages    String?
+  createdBy          Int?
   driverId           Int?
   driver             Driver?    @relation(fields: [driverId], references: [id])
   accidents          Accident[]
   tickets            Ticket[]
+  documents          Document[]
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
 }
@@ -68,10 +82,12 @@ model Accident {
   claimNumber              String?
   adjusterAssigned         String?
   documentation            String?
+  createdBy                Int?
   driverId                 Int?
   driver                   Driver?   @relation(fields: [driverId], references: [id])
   vehicleId                Int?
   vehicle                  Vehicle?  @relation(fields: [vehicleId], references: [id])
+  documents                Document[]
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
 }
@@ -88,10 +104,12 @@ model Ticket {
   citationDate        DateTime?
   citationType        String?
   citationAmount      String?
+  createdBy           Int?
   driverId            Int?
   driver              Driver?   @relation(fields: [driverId], references: [id])
   vehicleId           Int?
   vehicle             Vehicle?  @relation(fields: [vehicleId], references: [id])
+  documents           Document[]
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 }
@@ -106,15 +124,43 @@ model ServiceRequest {
   incidentLocation String?
   details          String?
   attachments      String?
+  createdBy        Int?
+  documents        Document[]
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 }
 
 model Document {
-  id        Int      @id @default(autoincrement())
-  driverId  Int
-  driver    Driver   @relation(fields: [driverId], references: [id])
-  fileName  String
-  fileUrl   String
-  createdAt DateTime @default(now())
+  id               Int             @id @default(autoincrement())
+  fileName         String
+  originalName     String
+  fileUrl          String
+  fileType         String?
+  fileSize         Int?
+  driverId         Int?
+  driver           Driver?         @relation(fields: [driverId], references: [id])
+  vehicleId        Int?
+  vehicle          Vehicle?        @relation(fields: [vehicleId], references: [id])
+  accidentId       Int?
+  accident         Accident?       @relation(fields: [accidentId], references: [id])
+  ticketId         Int?
+  ticket           Ticket?         @relation(fields: [ticketId], references: [id])
+  serviceRequestId Int?
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+  createdAt        DateTime        @default(now())
+}
+
+model HelpdeskTicket {
+  id             Int       @id @default(autoincrement())
+  token          String    @unique @default(cuid())
+  category       String?
+  priority       String?
+  name           String
+  email          String
+  subject        String
+  message        String
+  role           String?
+  submittedAt    DateTime  @default(now())
+  acknowledgedAt DateTime?
+  escalatedAt    DateTime?
 }

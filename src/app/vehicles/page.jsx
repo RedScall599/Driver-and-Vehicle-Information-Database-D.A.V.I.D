@@ -93,8 +93,8 @@ export default function VehiclesPage() {
                     </td>
                     <td className="px-5 py-3 text-right">
                       <Link href={`/vehicles/${v.id}`} className="text-red-700 hover:underline font-medium text-xs">
-                        View / Edit →
-                      </Link>
+                          View / Edit →
+                        </Link>
                     </td>
                   </tr>
                 ))}

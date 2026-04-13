@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import AppShell from '@/components/AppShell'
+import FileAttachments from '@/components/FileAttachments'
 
 const ISSUE_OPTIONS = ['Vehicle', 'Staff', 'Facility', 'Equipment', 'Other']
 const TYPE_OPTIONS = [
@@ -18,7 +19,7 @@ export default function ServiceRequestPage() {
   const [form, setForm] = useState({
     ticketId: '', dateOfReport: '', issueWith: '',
     requestType: '', other: '', incidentLocation: '',
-    details: '', attachments: '',
+    details: '',
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -220,35 +221,27 @@ export default function ServiceRequestPage() {
             <textarea name="details" value={form.details || ''} onChange={change} rows={4}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent resize-none" />
           </div>
-
-          {/* Attachments */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-              Attachments
-            </label>
-            <input type="text" name="attachments" value={form.attachments || ''} onChange={change}
-              placeholder="File name or URL"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent" />
-          </div>
         </div>
+
+        <FileAttachments recordType="serviceRequest" recordId={Number(params.id)} />
 
         {/* Submit buttons */}
         <div className="mt-6 flex flex-col sm:flex-row gap-3">
-          <button onClick={() => save('accident')} disabled={saving || deleting}
-            className="flex-1 py-2.5 bg-red-700 text-white text-sm font-semibold rounded-lg hover:bg-red-800 disabled:opacity-60 transition-colors text-center">
-            {saving ? 'Saving…' : 'Submit an Accident or Ticket'}
-          </button>
-          <button onClick={() => save('other')} disabled={saving || deleting}
-            className="flex-1 py-2.5 bg-gray-800 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 disabled:opacity-60 transition-colors text-center">
-            {saving ? 'Saving…' : 'Submit All Other Requests'}
-          </button>
-        </div>
+            <button onClick={() => save('accident')} disabled={saving || deleting}
+              className="flex-1 py-2.5 bg-red-700 text-white text-sm font-semibold rounded-lg hover:bg-red-800 disabled:opacity-60 transition-colors text-center">
+              {saving ? 'Saving…' : 'Submit an Accident or Ticket'}
+            </button>
+            <button onClick={() => save('other')} disabled={saving || deleting}
+              className="flex-1 py-2.5 bg-gray-800 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 disabled:opacity-60 transition-colors text-center">
+              {saving ? 'Saving…' : 'Submit All Other Requests'}
+            </button>
+          </div>
         <div className="mt-3 flex justify-end">
-          <button type="button" onClick={handleDelete} disabled={saving || deleting}
-            className="px-4 py-2 text-sm text-red-600 hover:text-red-800 font-medium disabled:opacity-40">
-            {deleting ? 'Deleting…' : 'Delete Request'}
-          </button>
-        </div>
+            <button type="button" onClick={handleDelete} disabled={saving || deleting}
+              className="px-4 py-2 text-sm text-red-600 hover:text-red-800 font-medium disabled:opacity-40">
+              {deleting ? 'Deleting…' : 'Delete Request'}
+            </button>
+          </div>
       </div>
     </AppShell>
   )

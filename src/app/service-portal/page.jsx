@@ -48,12 +48,12 @@ export default function ServicePortalPage() {
             </p>
           </div>
           <button
-            onClick={newRequest}
-            disabled={creating}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-700 text-white text-sm font-semibold rounded-lg hover:bg-red-800 disabled:opacity-60 transition-colors"
-          >
-            {creating ? 'Creating…' : '+ New Service Request'}
-          </button>
+              onClick={newRequest}
+              disabled={creating}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-red-700 text-white text-sm font-semibold rounded-lg hover:bg-red-800 disabled:opacity-60 transition-colors"
+            >
+              {creating ? 'Creating…' : '+ New Service Request'}
+            </button>
         </div>
 
         {/* Welcome banner (shown when no requests) */}
@@ -67,12 +67,12 @@ export default function ServicePortalPage() {
               How can we help you today? Submit a new service request to get started.
             </p>
             <button
-              onClick={newRequest}
-              disabled={creating}
-              className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors"
-            >
-              {creating ? 'Creating…' : 'New Service Request'}
-            </button>
+                onClick={newRequest}
+                disabled={creating}
+                className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                {creating ? 'Creating…' : 'New Service Request'}
+              </button>
           </div>
         )}
 
@@ -105,11 +105,11 @@ export default function ServicePortalPage() {
                       ) : '—'}
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <Link href={`/service-portal/${r.id}`}
-                        className="text-red-700 hover:underline font-medium text-xs">
-                        View / Edit →
-                      </Link>
-                    </td>
+                        <Link href={`/service-portal/${r.id}`}
+                          className="text-red-700 hover:underline font-medium text-xs">
+                          View / Edit →
+                        </Link>
+                      </td>
                   </tr>
                 ))}
               </tbody>

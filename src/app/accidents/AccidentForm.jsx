@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import FileAttachments from '@/components/FileAttachments'
 
 const EMPTY = {
   driverLicenseNumber: '', driverFirstName: '', driverLastName: '',
@@ -9,6 +10,36 @@ const EMPTY = {
   dcNumber: '', policeReportDate: '', policeReportTime: '',
   dateReportedToInsurance: '', staffMemberReporting: '',
   claimNumber: '', adjusterAssigned: '', documentation: '',
+}
+
+function Field({ label, name, type = 'text', className = '', textarea = false, required = false, form, fieldErrors, onChange, inputFilter }) {
+  function handleChange(e) {
+    if (inputFilter === 'alpha') e.target.value = e.target.value.replace(/[^a-zA-Z\s\-']/g, '')
+    else if (inputFilter === 'numeric') e.target.value = e.target.value.replace(/[^0-9]/g, '')
+    else if (inputFilter === 'decimal') e.target.value = e.target.value.replace(/[^0-9.]/g, '')
+    onChange(e)
+  }
+  return (
+    <div className={className}>
+      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
+      {textarea ? (
+        <textarea name={name} value={form[name] || ''} onChange={onChange} rows={3}
+          className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent resize-none transition-colors ${
+            fieldErrors[name] ? 'border-red-400 bg-red-50' : 'border-gray-300'
+          }`} />
+      ) : (
+        <input type={type} name={name} value={form[name] || ''}
+          inputMode={inputFilter === 'numeric' || inputFilter === 'decimal' ? 'numeric' : undefined}
+          onChange={handleChange}
+          className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors ${
+            fieldErrors[name] ? 'border-red-400 bg-red-50' : 'border-gray-300'
+          }`} />
+      )}
+      {fieldErrors[name] && <p className="text-xs text-red-600 mt-1">{fieldErrors[name]}</p>}
+    </div>
+  )
 }
 
 export default function AccidentForm({ recordId, onBack }) {
@@ -91,25 +122,7 @@ export default function AccidentForm({ recordId, onBack }) {
     }
   }
 
-  const Field = ({ label, name, type = 'text', className = '', textarea = false, required = false }) => (
-    <div className={className}>
-      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
-      {textarea ? (
-        <textarea name={name} value={form[name] || ''} onChange={change} rows={3}
-          className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent resize-none transition-colors ${
-            fieldErrors[name] ? 'border-red-400 bg-red-50' : 'border-gray-300'
-          }`} />
-      ) : (
-        <input type={type} name={name} value={form[name] || ''} onChange={change}
-          className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors ${
-            fieldErrors[name] ? 'border-red-400 bg-red-50' : 'border-gray-300'
-          }`} />
-      )}
-      {fieldErrors[name] && <p className="text-xs text-red-600 mt-1">{fieldErrors[name]}</p>}
-    </div>
-  )
+  const fp = { form, fieldErrors, onChange: change }
 
   if (loading) return <div className="py-16 text-center text-gray-400 text-sm">Loading&hellip;</div>
 
@@ -150,23 +163,23 @@ export default function AccidentForm({ recordId, onBack }) {
         <section className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-4">Driver Information</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <Field label="Driver First Name" name="driverFirstName" />
-            <Field label="Driver Last Name" name="driverLastName" required />
+            <Field {...fp} label="Driver First Name" name="driverFirstName" inputFilter="alpha" />
+            <Field {...fp} label="Driver Last Name" name="driverLastName" required inputFilter="alpha" />
           </div>
-          <Field label="Driver License Number" name="driverLicenseNumber" />
+          <Field {...fp} label="Driver License Number" name="driverLicenseNumber" />
         </section>
 
         {/* Program & Vehicle */}
         <section className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-4">Program &amp; Vehicle Information</h3>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Program Partner Name" name="programPartnerName" className="col-span-2" />
-            <Field label="Accident Date" name="accidentDate" type="date" required />
-            <Field label="VIN #" name="vinNumber" />
-            <Field label="Year" name="year" />
-            <Field label="Make" name="make" />
-            <Field label="Model" name="model" />
-            <Field label="License Plate" name="licensePlate" />
+            <Field {...fp} label="Program Partner Name" name="programPartnerName" className="col-span-2" />
+            <Field {...fp} label="Accident Date" name="accidentDate" type="date" required />
+            <Field {...fp} label="VIN #" name="vinNumber" />
+            <Field {...fp} label="Year" name="year" inputFilter="numeric" />
+            <Field {...fp} label="Make" name="make" inputFilter="alpha" />
+            <Field {...fp} label="Model" name="model" />
+            <Field {...fp} label="License Plate" name="licensePlate" />
           </div>
         </section>
 
@@ -174,9 +187,9 @@ export default function AccidentForm({ recordId, onBack }) {
         <section className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-4">Police Report Information</h3>
           <div className="grid grid-cols-3 gap-4">
-            <Field label="DC #" name="dcNumber" />
-            <Field label="Police Report Date" name="policeReportDate" type="date" />
-            <Field label="Police Report Time (if known)" name="policeReportTime" />
+            <Field {...fp} label="DC #" name="dcNumber" />
+            <Field {...fp} label="Police Report Date" name="policeReportDate" type="date" />
+            <Field {...fp} label="Police Report Time (if known)" name="policeReportTime" />
           </div>
         </section>
 
@@ -184,13 +197,15 @@ export default function AccidentForm({ recordId, onBack }) {
         <section className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-4">Insurance Information</h3>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Date Reported to Ins. Agency" name="dateReportedToInsurance" type="date" />
-            <Field label="Staff Member Reporting to Ins. Company" name="staffMemberReporting" />
-            <Field label="Claim Number" name="claimNumber" />
-            <Field label="Adjuster Assigned" name="adjusterAssigned" />
-            <Field label="Documentation" name="documentation" textarea className="col-span-2" />
+            <Field {...fp} label="Date Reported to Ins. Agency" name="dateReportedToInsurance" type="date" />
+            <Field {...fp} label="Staff Member Reporting to Ins. Company" name="staffMemberReporting" inputFilter="alpha" />
+            <Field {...fp} label="Claim Number" name="claimNumber" />
+            <Field {...fp} label="Adjuster Assigned" name="adjusterAssigned" inputFilter="alpha" />
+            <Field {...fp} label="Documentation" name="documentation" textarea className="col-span-2" />
           </div>
         </section>
+
+        <FileAttachments recordType="accident" recordId={recordId} />
 
         <button type="submit" disabled={saving}
           className="px-5 py-2 bg-red-700 text-white text-sm font-semibold rounded-lg hover:bg-red-800 disabled:opacity-60 transition-colors">

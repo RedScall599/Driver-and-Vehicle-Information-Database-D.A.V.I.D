@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/helpdesk/escalate",
+      "schedule": "*/5 * * * *"
+    }
+  ]
+}

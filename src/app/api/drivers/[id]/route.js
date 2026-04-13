@@ -1,14 +1,19 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { getSession } from '@/lib/auth'
 
 export async function GET(request, { params }) {
   try {
+    const session = await getSession()
     const { id } = await params
     const driver = await prisma.driver.findUnique({
       where: { id: Number(id) },
       include: { vehicles: true, documents: true },
     })
     if (!driver) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (session?.role !== 'admin' && driver.createdBy !== session?.userId) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
     return NextResponse.json(driver)
   } catch (err) {
     console.error('[GET /api/drivers/:id]', err)
@@ -18,17 +23,24 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
+    const session = await getSession()
     const { id } = await params
     const body = await request.json()
+    const existing = await prisma.driver.findUnique({ where: { id: Number(id) } })
+    if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (session?.role !== 'admin' && existing.createdBy !== session?.userId) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
     if (!body.firstName?.trim() || !body.lastName?.trim() || !body.licenseNumber?.trim()) {
       return NextResponse.json(
         { error: 'First name, last name, and license number are required' },
         { status: 422 }
       )
     }
+    const { createdBy: _ignored, ...safeBody } = body
     const driver = await prisma.driver.update({
       where: { id: Number(id) },
-      data: body,
+      data: safeBody,
     })
     return NextResponse.json(driver)
   } catch (err) {
@@ -39,7 +51,13 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
+    const session = await getSession()
     const { id } = await params
+    const existing = await prisma.driver.findUnique({ where: { id: Number(id) } })
+    if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (session?.role !== 'admin' && existing.createdBy !== session?.userId) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
     await prisma.driver.delete({ where: { id: Number(id) } })
     return NextResponse.json({ success: true })
   } catch (err) {
