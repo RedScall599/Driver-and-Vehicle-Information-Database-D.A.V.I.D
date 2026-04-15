@@ -38,12 +38,20 @@ export async function middleware(request) {
   const token = request.cookies.get(COOKIE)?.value
 
   if (!token) {
-    const loginUrl = new URL('/login', request.url)
-    return NextResponse.redirect(loginUrl)
+    // API routes get a 401 JSON response; pages get redirected to login
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Session expired. Please log in again.' }, { status: 401 })
+    }
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   const session = await verify(token)
   if (!session) {
+    if (pathname.startsWith('/api/')) {
+      const res = NextResponse.json({ error: 'Session expired. Please log in again.' }, { status: 401 })
+      res.cookies.delete(COOKIE)
+      return res
+    }
     const loginUrl = new URL('/login', request.url)
     const res = NextResponse.redirect(loginUrl)
     res.cookies.delete(COOKIE)

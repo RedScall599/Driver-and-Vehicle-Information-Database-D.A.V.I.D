@@ -86,7 +86,13 @@ export default function HelpDeskPage() {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(form),
       })
+      // If the session expired, the middleware redirects to /login (HTML response)
+      if (res.redirected || res.headers.get('content-type')?.includes('text/html')) {
+        window.location.href = '/login'
+        return
+      }
       const data = await res.json()
+      if (res.status === 401) { window.location.href = '/login'; return }
       if (!res.ok) throw new Error(data.error || 'Submission failed.')
       setSubmitted(true)
     } catch (err) {
