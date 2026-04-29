@@ -65,17 +65,13 @@ export default function Home() {
         </div>
 
         {/* Brand banner */}
-        <div className="rounded-xl bg-gradient-to-r from-red-700 to-red-900 text-white px-8 py-6 mb-8 flex items-center justify-between">
-          <div>
-            <p className="text-red-200 text-sm font-medium uppercase tracking-widest mb-1">
-              Urban Affairs Coalition
-            </p>
-            <h2 className="text-2xl font-bold">D.A.V.I.D.</h2>
-            <p className="text-red-100 text-sm mt-0.5">
-              Driver and Vehicle Information Database
-            </p>
-          </div>
-          <div className="text-6xl opacity-20">🚗</div>
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm mb-8 flex items-center justify-center px-6 py-3">
+          <img
+            src="/uac-logo.png"
+            alt="Urban Affairs Coalition"
+            className="w-auto object-contain"
+            style={{ height: '100px' }}
+          />
         </div>
 
         {/* Module cards */}

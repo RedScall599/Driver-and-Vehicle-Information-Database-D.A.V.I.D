@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!--
+    UAC-style sunburst fan — white version for use on dark backgrounds.
+    Center origin at (50, 100) — bottom-center of the viewBox.
+    8 rays (4 wider, 4 narrower) spanning ~170° from 5° to 175°.
+  -->
+  <g fill="white">
+    <!-- Wide ray 1: 5°–27° -->
+    <path d="M50 100 L99.8 95.6 A50 50 0 0 0 94.6 77.3 Z"/>
+    <!-- Narrow ray 2: 31°–44.5° -->
+    <path d="M50 100 L92.9 74.2 A50 50 0 0 0 85.7 65.0 Z"/>
+    <!-- Wide ray 3: 48.5°–70.5° -->
+    <path d="M50 100 L83.1 62.5 A50 50 0 0 0 66.7 52.9 Z"/>
+    <!-- Narrow ray 4: 74.5°–88° -->
+    <path d="M50 100 L63.4 51.8 A50 50 0 0 0 51.7 50.0 Z"/>
+    <!-- Wide ray 5: 92°–114° -->
+    <path d="M50 100 L48.3 50.0 A50 50 0 0 0 29.7 54.3 Z"/>
+    <!-- Narrow ray 6: 118°–131.5° -->
+    <path d="M50 100 L26.5 55.9 A50 50 0 0 0 16.9 62.5 Z"/>
+    <!-- Wide ray 7: 135.5°–157.5° -->
+    <path d="M50 100 L14.3 65.0 A50 50 0 0 0 3.8 80.9 Z"/>
+    <!-- Narrow ray 8: 161.5°–175° -->
+    <path d="M50 100 L2.6 84.1 A50 50 0 0 0 0.2 95.6 Z"/>
+  </g>
+</svg>
