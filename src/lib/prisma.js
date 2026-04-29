@@ -3,18 +3,23 @@ import { PrismaNeon } from '@prisma/adapter-neon'
 import { PrismaClient } from '@prisma/client'
 import ws from 'ws'
 
-// Required for Node.js environments (Next.js server components, API routes)
 neonConfig.webSocketConstructor = ws
 
 const globalForPrisma = globalThis
 
-function createPrismaClient() {
+function getPrismaClient() {
+  if (globalForPrisma.prisma) return globalForPrisma.prisma
   const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL })
-  return new PrismaClient({ adapter })
+  const client = new PrismaClient({ adapter })
+  if (process.env.NODE_ENV !== 'production') {
+    globalForPrisma.prisma = client
+  }
+  return client
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient()
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma
-}
+// Proxy defers instantiation until first use — safe during Vercel build phase
+export const prisma = new Proxy({}, {
+  get(_, prop) {
+    return getPrismaClient()[prop]
+  },
+})
