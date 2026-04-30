@@ -43,7 +43,7 @@ export async function PUT(request, { params }) {
         { status: 422 }
       )
     }
-    const { createdBy: _ignored, licenseExpiration, suspensionStartDate, suspensionEndDate, ...safeBody } = body
+    const { createdBy: _ignored, id: _id, createdAt: _ca, updatedAt: _ua, vehicles: _v, accidents: _acc, tickets: _tix, documents: _docs, licenseExpiration, suspensionStartDate, suspensionEndDate, ...safeBody } = body
     const driver = await prisma.driver.update({
       where: { id: Number(id) },
       data: {

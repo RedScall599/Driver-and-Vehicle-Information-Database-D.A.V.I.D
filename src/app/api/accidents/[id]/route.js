@@ -36,7 +36,7 @@ export async function PUT(request, { params }) {
     if (session?.role !== 'admin' && existing.createdBy !== session?.userId) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
-    const { createdBy: _ignored, accidentDate, policeReportDate, dateReportedToInsurance, ...safeBody } = body
+    const { createdBy: _ignored, id: _id, createdAt: _ca, updatedAt: _ua, driver: _driver, vehicle: _vehicle, documents: _docs, accidentDate, policeReportDate, dateReportedToInsurance, ...safeBody } = body
     const accident = await prisma.accident.update({
       where: { id: Number(id) },
       data: {
