@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { unlink } from 'fs/promises'
-import path from 'path'
+import { del } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 
 export async function DELETE(request, { params }) {
@@ -11,10 +10,9 @@ export async function DELETE(request, { params }) {
     const doc = await prisma.document.findUnique({ where: { id } })
     if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-    // Delete file from disk — ignore errors if file is already gone
+    // Delete file from Vercel Blob — ignore errors if file is already gone
     try {
-      const filePath = path.join(process.cwd(), 'public', doc.fileUrl)
-      await unlink(filePath)
+      await del(doc.fileUrl)
     } catch {}
 
     await prisma.document.delete({ where: { id } })

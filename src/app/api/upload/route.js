@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
+import { put } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 
 const ALLOWED_TYPES = [
@@ -34,23 +33,20 @@ export async function POST(request) {
       return NextResponse.json({ error: 'File too large (max 20 MB)' }, { status: 400 })
     }
 
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
-    await mkdir(uploadsDir, { recursive: true })
-
     // Sanitize original filename to avoid path traversal
-    const originalName = path.basename(file.name).replace(/[^a-zA-Z0-9._-]/g, '_')
-    const ext = path.extname(originalName)
+    const originalName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+    const ext = originalName.includes('.') ? '.' + originalName.split('.').pop() : ''
     const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`
-    const filePath = path.join(uploadsDir, uniqueName)
-    await writeFile(filePath, buffer)
+
+    const blob = await put(`uploads/${uniqueName}`, file.stream(), {
+      access: 'public',
+      contentType: file.type,
+    })
 
     const data = {
       fileName: uniqueName,
       originalName,
-      fileUrl: `/uploads/${uniqueName}`,
+      fileUrl: blob.url,
       fileType: file.type,
       fileSize: file.size,
     }
