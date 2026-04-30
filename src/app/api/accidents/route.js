@@ -29,12 +29,26 @@ export async function GET(request) {
   }
 }
 
+function toDate(val) {
+  if (!val || val === '') return null
+  const d = new Date(val)
+  return isNaN(d.getTime()) ? null : d
+}
+
 export async function POST(request) {
   try {
     const session = await getSession()
     const body = await request.json()
-    const { createdBy: _ignored, ...safeBody } = body
-    const accident = await prisma.accident.create({ data: { ...safeBody, createdBy: session?.userId ?? null } })
+    const { createdBy: _ignored, accidentDate, policeReportDate, dateReportedToInsurance, ...safeBody } = body
+    const accident = await prisma.accident.create({
+      data: {
+        ...safeBody,
+        accidentDate: toDate(accidentDate),
+        policeReportDate: toDate(policeReportDate),
+        dateReportedToInsurance: toDate(dateReportedToInsurance),
+        createdBy: session?.userId ?? null,
+      },
+    })
     return NextResponse.json(accident, { status: 201 })
   } catch (err) {
     console.error('[POST /api/accidents]', err)

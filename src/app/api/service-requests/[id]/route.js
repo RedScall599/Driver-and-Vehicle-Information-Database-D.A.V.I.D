@@ -30,10 +30,13 @@ export async function PUT(request, { params }) {
     if (session?.role !== 'admin' && existing.createdBy !== session?.userId) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
-    const { createdBy: _ignored, ...safeBody } = body
+    const { createdBy: _ignored, dateOfReport, ...safeBody } = body
     const sr = await prisma.serviceRequest.update({
       where: { id: Number(id) },
-      data: safeBody,
+      data: {
+        ...safeBody,
+        ...(dateOfReport !== undefined ? { dateOfReport: dateOfReport && dateOfReport !== '' ? new Date(dateOfReport) : new Date() } : {}),
+      },
     })
     return NextResponse.json(sr)
   } catch (err) {

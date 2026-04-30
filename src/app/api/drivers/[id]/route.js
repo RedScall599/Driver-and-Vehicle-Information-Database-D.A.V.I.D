@@ -2,6 +2,12 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 
+function toDate(val) {
+  if (!val || val === '') return null
+  const d = new Date(val)
+  return isNaN(d.getTime()) ? null : d
+}
+
 export async function GET(request, { params }) {
   try {
     const session = await getSession()
@@ -37,10 +43,15 @@ export async function PUT(request, { params }) {
         { status: 422 }
       )
     }
-    const { createdBy: _ignored, ...safeBody } = body
+    const { createdBy: _ignored, licenseExpiration, suspensionStartDate, suspensionEndDate, ...safeBody } = body
     const driver = await prisma.driver.update({
       where: { id: Number(id) },
-      data: safeBody,
+      data: {
+        ...safeBody,
+        licenseExpiration: toDate(licenseExpiration),
+        suspensionStartDate: toDate(suspensionStartDate),
+        suspensionEndDate: toDate(suspensionEndDate),
+      },
     })
     return NextResponse.json(driver)
   } catch (err) {

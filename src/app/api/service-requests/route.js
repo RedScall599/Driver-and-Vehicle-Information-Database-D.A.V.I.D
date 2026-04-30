@@ -35,8 +35,14 @@ export async function POST(request) {
       }
       body.ticketId = ticketId
     }
-    const { createdBy: _ignored, ...safeBody } = body
-    const sr = await prisma.serviceRequest.create({ data: { ...safeBody, createdBy: session?.userId ?? null } })
+    const { createdBy: _ignored, dateOfReport, ...safeBody } = body
+    const sr = await prisma.serviceRequest.create({
+      data: {
+        ...safeBody,
+        dateOfReport: dateOfReport && dateOfReport !== '' ? new Date(dateOfReport) : new Date(),
+        createdBy: session?.userId ?? null,
+      },
+    })
     return NextResponse.json(sr, { status: 201 })
   } catch (err) {
     console.error('[POST /api/service-requests]', err)

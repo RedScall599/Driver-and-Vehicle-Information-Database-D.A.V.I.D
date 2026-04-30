@@ -28,6 +28,12 @@ export async function GET(request) {
   }
 }
 
+function toDate(val) {
+  if (!val || val === '') return null
+  const d = new Date(val)
+  return isNaN(d.getTime()) ? null : d
+}
+
 export async function POST(request) {
   try {
     const session = await getSession()
@@ -38,8 +44,16 @@ export async function POST(request) {
         { status: 422 }
       )
     }
-    const { createdBy: _ignored, ...safeBody } = body
-    const driver = await prisma.driver.create({ data: { ...safeBody, createdBy: session?.userId ?? null } })
+    const { createdBy: _ignored, licenseExpiration, suspensionStartDate, suspensionEndDate, ...safeBody } = body
+    const driver = await prisma.driver.create({
+      data: {
+        ...safeBody,
+        licenseExpiration: toDate(licenseExpiration),
+        suspensionStartDate: toDate(suspensionStartDate),
+        suspensionEndDate: toDate(suspensionEndDate),
+        createdBy: session?.userId ?? null,
+      },
+    })
     return NextResponse.json(driver, { status: 201 })
   } catch (err) {
     console.error('[POST /api/drivers]', err)

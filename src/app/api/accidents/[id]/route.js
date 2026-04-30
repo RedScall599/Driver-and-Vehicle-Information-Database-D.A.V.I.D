@@ -2,6 +2,12 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 
+function toDate(val) {
+  if (!val || val === '') return null
+  const d = new Date(val)
+  return isNaN(d.getTime()) ? null : d
+}
+
 export async function GET(request, { params }) {
   try {
     const session = await getSession()
@@ -30,10 +36,15 @@ export async function PUT(request, { params }) {
     if (session?.role !== 'admin' && existing.createdBy !== session?.userId) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
-    const { createdBy: _ignored, ...safeBody } = body
+    const { createdBy: _ignored, accidentDate, policeReportDate, dateReportedToInsurance, ...safeBody } = body
     const accident = await prisma.accident.update({
       where: { id: Number(id) },
-      data: safeBody,
+      data: {
+        ...safeBody,
+        accidentDate: toDate(accidentDate),
+        policeReportDate: toDate(policeReportDate),
+        dateReportedToInsurance: toDate(dateReportedToInsurance),
+      },
     })
     return NextResponse.json(accident)
   } catch (err) {

@@ -29,12 +29,25 @@ export async function GET(request) {
   }
 }
 
+function toDate(val) {
+  if (!val || val === '') return null
+  const d = new Date(val)
+  return isNaN(d.getTime()) ? null : d
+}
+
 export async function POST(request) {
   try {
     const session = await getSession()
     const body = await request.json()
-    const { createdBy: _ignored, ...safeBody } = body
-    const ticket = await prisma.ticket.create({ data: { ...safeBody, createdBy: session?.userId ?? null } })
+    const { createdBy: _ignored, violationDate, citationDate, ...safeBody } = body
+    const ticket = await prisma.ticket.create({
+      data: {
+        ...safeBody,
+        violationDate: toDate(violationDate),
+        citationDate: toDate(citationDate),
+        createdBy: session?.userId ?? null,
+      },
+    })
     return NextResponse.json(ticket, { status: 201 })
   } catch (err) {
     console.error('[POST /api/tickets]', err)
