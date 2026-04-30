@@ -4,7 +4,7 @@ import AppShell from '@/components/AppShell'
 const sections = [
   {
     href: '/drivers',
-    title: 'Driver Data',
+    title: 'Drivers',
     description: 'Add, edit, and manage driver records including license, status, and suspension info.',
     icon: '👤',
     color: 'bg-cyan-50 border-cyan-200',
@@ -12,27 +12,11 @@ const sections = [
   },
   {
     href: '/vehicles',
-    title: 'Vehicle Information',
+    title: 'Vehicles',
     description: 'Manage program vehicles — VIN, plate, GPS tracker, IMEI, and driver assignments.',
     icon: '🚗',
     color: 'bg-green-50 border-green-200',
     iconBg: 'bg-green-600',
-  },
-  {
-    href: '/drivers',
-    title: 'Driver List',
-    description: 'View a full list of drivers with their program and current license status.',
-    icon: '📋',
-    color: 'bg-blue-50 border-blue-200',
-    iconBg: 'bg-blue-600',
-  },
-  {
-    href: '/vehicles',
-    title: 'Vehicle List',
-    description: 'Searchable table of all program vehicles with linked driver info.',
-    icon: '🗂️',
-    color: 'bg-yellow-50 border-yellow-200',
-    iconBg: 'bg-yellow-600',
   },
   {
     href: '/accidents',
@@ -49,6 +33,14 @@ const sections = [
     icon: '🎫',
     color: 'bg-purple-50 border-purple-200',
     iconBg: 'bg-purple-600',
+  },
+  {
+    href: '/help-desk',
+    title: 'Help Desk',
+    description: 'Send a help request for issues related to the website or questions.',
+    icon: '🎧',
+    color: 'bg-blue-50 border-blue-200',
+    iconBg: 'bg-blue-600',
   },
 ]
 
@@ -75,12 +67,12 @@ export default function Home() {
         </div>
 
         {/* Module cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 justify-items-center">
           {sections.map(({ href, title, description, icon, color, iconBg }) => (
             <Link
               key={title}
               href={href}
-              className={`group rounded-xl border p-5 ${color} hover:shadow-md transition-shadow flex flex-col gap-3`}
+              className={`group rounded-xl border p-5 ${color} hover:shadow-md transition-shadow flex flex-col gap-3 w-full`}
             >
               <div className={`w-10 h-10 rounded-lg ${iconBg} flex items-center justify-center text-white text-lg shrink-0`}>
                 {icon}

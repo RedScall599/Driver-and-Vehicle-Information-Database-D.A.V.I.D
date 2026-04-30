@@ -50,9 +50,10 @@ export default function DriverDetailPage() {
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState({})
   const [apiError, setApiError] = useState('')
-  const [saved, setSaved] = useState(false)
+  const [saved, setSaved] = useState('')
   const [allIds, setAllIds] = useState([])
   const attachRef = useRef()
+  const originalForm = useRef(null)
 
   useEffect(() => {
     fetch('/api/drivers').then(r => r.json()).then(data => {
@@ -67,12 +68,14 @@ export default function DriverDetailPage() {
       .then(data => {
         // Format dates for input[type=date]
         const fmt = (v) => v ? v.split('T')[0] : ''
-        setForm({
+        const formatted = {
           ...data,
           licenseExpiration: fmt(data.licenseExpiration),
           suspensionStartDate: fmt(data.suspensionStartDate),
           suspensionEndDate: fmt(data.suspensionEndDate),
-        })
+        }
+        setForm(formatted)
+        originalForm.current = formatted
         setLoading(false)
       })
   }, [params.id, isNew])
@@ -93,13 +96,17 @@ export default function DriverDetailPage() {
     const { name, value } = e.target
     setForm(f => ({ ...f, [name]: value }))
     setErrors(prev => { const n = { ...prev }; delete n[name]; return n })
-    setSaved(false)
+    setSaved('')
   }
 
   async function save(e) {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length) { setErrors(errs); return }
+    if (!isNew && originalForm.current && JSON.stringify(form) === JSON.stringify(originalForm.current)) {
+      setSaved('No changes were made.')
+      return
+    }
     setSaving(true)
     setApiError('')
     try {
@@ -112,7 +119,7 @@ export default function DriverDetailPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Save failed')
-      setSaved(true)
+      setSaved('Record saved successfully.')
       if (isNew) {
         await attachRef.current?.flush(data.id)
         router.push(`/drivers/${data.id}`)
@@ -200,7 +207,7 @@ export default function DriverDetailPage() {
         )}
         {saved && (
           <div className="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm flex items-center gap-2">
-            <span>✓</span> Record saved successfully.
+            <span>✓</span> {saved}
           </div>
         )}
         {Object.keys(errors).length > 0 && (

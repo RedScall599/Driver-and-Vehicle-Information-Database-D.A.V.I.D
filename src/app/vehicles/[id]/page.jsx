@@ -45,7 +45,8 @@ export default function VehicleDetailPage() {
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState({})
   const [apiError, setApiError] = useState('')
-  const [saved, setSaved] = useState(false)
+  const [saved, setSaved] = useState('')
+  const originalForm = useRef(null)
   const [drivers, setDrivers] = useState([])
   const [allIds, setAllIds] = useState([])
   const attachRef = useRef()
@@ -59,7 +60,7 @@ export default function VehicleDetailPage() {
     if (isNew) return
     fetch(`/api/vehicles/${params.id}`)
       .then(r => r.json())
-      .then(data => { setForm(data); setLoading(false) })
+      .then(data => { setForm(data); originalForm.current = data; setLoading(false) })
   }, [params.id, isNew])
 
   function validate() {
@@ -80,13 +81,17 @@ export default function VehicleDetailPage() {
     const { name, value } = e.target
     setForm(f => ({ ...f, [name]: value }))
     setErrors(prev => { const n = { ...prev }; delete n[name]; return n })
-    setSaved(false)
+    setSaved('')
   }
 
   async function save(e) {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length) { setErrors(errs); return }
+    if (!isNew && originalForm.current && JSON.stringify(form) === JSON.stringify(originalForm.current)) {
+      setSaved('No changes were made.')
+      return
+    }
     setSaving(true)
     setApiError('')
     try {
@@ -100,7 +105,8 @@ export default function VehicleDetailPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Save failed')
-      setSaved(true)
+      setSaved('Record saved successfully.')
+      originalForm.current = data
       if (isNew) {
         await attachRef.current?.flush(data.id)
         router.push(`/vehicles/${data.id}`)
@@ -170,7 +176,7 @@ export default function VehicleDetailPage() {
         )}
         {saved && (
           <div className="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm flex items-center gap-2">
-            <span>✓</span> Record saved successfully.
+            <span>✓</span> {saved}
           </div>
         )}
         {Object.keys(errors).length > 0 && (

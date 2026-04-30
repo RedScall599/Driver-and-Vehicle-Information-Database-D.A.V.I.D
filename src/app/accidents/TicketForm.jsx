@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import FileAttachments from '@/components/FileAttachments'
 
 const EMPTY = {
@@ -40,8 +40,9 @@ export default function TicketForm({ recordId, onBack }) {
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
-  const [saved, setSaved] = useState(false)
+  const [saved, setSaved] = useState('')
   const [fieldErrors, setFieldErrors] = useState({})
+  const originalForm = useRef(null)
 
   useEffect(() => {
     if (isNew) { setForm(EMPTY); setLoading(false); return }
@@ -50,11 +51,13 @@ export default function TicketForm({ recordId, onBack }) {
       .then(r => r.json())
       .then(data => {
         const fmt = v => v ? v.split('T')[0] : ''
-        setForm({
+        const formatted = {
           ...data,
           violationDate: fmt(data.violationDate),
           citationDate: fmt(data.citationDate),
-        })
+        }
+        setForm(formatted)
+        originalForm.current = formatted
         setLoading(false)
       })
   }, [recordId, isNew])
@@ -70,13 +73,17 @@ export default function TicketForm({ recordId, onBack }) {
     const { name, value } = e.target
     setForm(f => ({ ...f, [name]: value }))
     setFieldErrors(prev => { const n = { ...prev }; delete n[name]; return n })
-    setSaved(false)
+    setSaved('')
   }
 
   async function save(e) {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length) { setFieldErrors(errs); return }
+    if (!isNew && originalForm.current && JSON.stringify(form) === JSON.stringify(originalForm.current)) {
+      setSaved('No changes were made.')
+      return
+    }
     setSaving(true)
     setError('')
     setSaved(false)
@@ -90,7 +97,7 @@ export default function TicketForm({ recordId, onBack }) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Save failed')
-      setSaved(true)
+      setSaved('Record saved successfully.')
       if (isNew) onBack(data.id)
     } catch (err) {
       setError(err.message || 'Could not save record.')
@@ -139,7 +146,7 @@ export default function TicketForm({ recordId, onBack }) {
       )}
       {saved && (
         <div className="rounded-lg bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm flex items-center gap-2">
-          <span>✓</span> Record saved successfully.
+          <span>✓</span> {saved}
         </div>
       )}
       {Object.keys(fieldErrors).length > 0 && (

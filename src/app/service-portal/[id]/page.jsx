@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import AppShell from '@/components/AppShell'
@@ -26,8 +26,9 @@ export default function ServiceRequestPage() {
   const [deleting, setDeleting] = useState(false)
   const [errors, setErrors] = useState({})
   const [apiError, setApiError] = useState('')
-  const [saved, setSaved] = useState(false)
+  const [saved, setSaved] = useState('')
   const [allIds, setAllIds] = useState([])
+  const originalForm = useRef(null)
 
   useEffect(() => {
     fetch('/api/service-requests')
@@ -40,7 +41,9 @@ export default function ServiceRequestPage() {
       .then(r => r.json())
       .then(data => {
         const fmt = v => v ? v.split('T')[0] : ''
-        setForm({ ...data, dateOfReport: fmt(data.dateOfReport) })
+        const formatted = { ...data, dateOfReport: fmt(data.dateOfReport) }
+        setForm(formatted)
+        originalForm.current = formatted
         setLoading(false)
       })
   }, [params.id])
@@ -56,7 +59,7 @@ export default function ServiceRequestPage() {
     const { name, value } = e.target
     setForm(f => ({ ...f, [name]: value }))
     setErrors(prev => { const n = { ...prev }; delete n[name]; return n })
-    setSaved(false)
+    setSaved('')
   }
 
   async function handleDelete() {
@@ -75,6 +78,10 @@ export default function ServiceRequestPage() {
   async function save(type) {
     const errs = validate()
     if (Object.keys(errs).length) { setErrors(errs); return }
+    if (originalForm.current && JSON.stringify(form) === JSON.stringify(originalForm.current)) {
+      setSaved('No changes were made.')
+      return
+    }
     setSaving(true)
     setApiError('')
     setSaved(false)
@@ -86,7 +93,7 @@ export default function ServiceRequestPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Save failed')
-      setSaved(true)
+      setSaved('Request saved successfully.')
       if (type === 'accident') {
         router.push('/accidents')
       }
@@ -146,7 +153,7 @@ export default function ServiceRequestPage() {
         )}
         {saved && (
           <div className="mb-4 rounded-lg bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm flex items-center gap-2">
-            <span>✓</span> Request saved successfully.
+            <span>✓</span> {saved}
           </div>
         )}
         {Object.keys(errors).length > 0 && (
