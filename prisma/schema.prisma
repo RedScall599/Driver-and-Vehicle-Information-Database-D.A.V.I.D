@@ -135,6 +135,7 @@ model Document {
   fileName         String
   originalName     String
   fileUrl          String
+  fileData         Bytes?
   fileType         String?
   fileSize         Int?
   driverId         Int?

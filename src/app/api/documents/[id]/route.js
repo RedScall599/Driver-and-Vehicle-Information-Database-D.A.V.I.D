@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { del } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 
 export async function DELETE(request, { params }) {
@@ -7,14 +6,10 @@ export async function DELETE(request, { params }) {
     const id = parseInt(params.id)
     if (isNaN(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
 
-    const doc = await prisma.document.findUnique({ where: { id } })
+    const doc = await prisma.document.findUnique({ where: { id }, omit: { fileData: true } })
     if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-    // Delete file from Vercel Blob — ignore errors if file is already gone
-    try {
-      await del(doc.fileUrl)
-    } catch {}
-
+    // File data is stored in the DB row — deleting the record removes it
     await prisma.document.delete({ where: { id } })
     return NextResponse.json({ ok: true })
   } catch (err) {

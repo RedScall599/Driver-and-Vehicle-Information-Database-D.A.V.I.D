@@ -21,6 +21,7 @@ export async function GET(request) {
 
     const documents = await prisma.document.findMany({
       where,
+      omit: { fileData: true },
       orderBy: { createdAt: 'asc' },
     })
     return NextResponse.json(documents)

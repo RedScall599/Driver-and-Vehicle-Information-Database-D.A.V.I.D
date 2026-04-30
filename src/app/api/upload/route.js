@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 
 const ALLOWED_TYPES = [
@@ -33,20 +32,19 @@ export async function POST(request) {
       return NextResponse.json({ error: 'File too large (max 20 MB)' }, { status: 400 })
     }
 
-    // Sanitize original filename to avoid path traversal
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+
+    // Sanitize original filename
     const originalName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
     const ext = originalName.includes('.') ? '.' + originalName.split('.').pop() : ''
     const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`
 
-    const blob = await put(`uploads/${uniqueName}`, file.stream(), {
-      access: 'public',
-      contentType: file.type,
-    })
-
     const data = {
       fileName: uniqueName,
       originalName,
-      fileUrl: blob.url,
+      fileUrl: '',       // filled in after we have the id
+      fileData: buffer,
       fileType: file.type,
       fileSize: file.size,
     }
@@ -59,7 +57,15 @@ export async function POST(request) {
     else return NextResponse.json({ error: 'Unknown record type' }, { status: 400 })
 
     const document = await prisma.document.create({ data })
-    return NextResponse.json(document, { status: 201 })
+
+    // Now that we have the id, set the serve URL
+    const updated = await prisma.document.update({
+      where: { id: document.id },
+      data: { fileUrl: `/api/documents/${document.id}/file` },
+      omit: { fileData: true },
+    })
+
+    return NextResponse.json(updated, { status: 201 })
   } catch (err) {
     console.error('[POST /api/upload]', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
